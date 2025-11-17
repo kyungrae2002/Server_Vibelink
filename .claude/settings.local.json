@@ -10,7 +10,8 @@
       "Bash(findstr:*)",
       "Bash(timeout /t 2)",
       "Bash(if exist .env type .env)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []

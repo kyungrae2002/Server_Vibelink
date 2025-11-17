@@ -12,17 +12,29 @@ const spotifyConfig = require('../config/spotify');
  */
 router.get('/login', (req, res) => {
   const state = uuidv4();
+
+  // Save state in session
   req.session.state = state;
 
-  const authUrl = `${spotifyConfig.authBaseUrl}/authorize?` + querystring.stringify({
-    response_type: 'code',
-    client_id: spotifyConfig.clientId,
-    scope: spotifyConfig.scopes.join(' '),
-    redirect_uri: spotifyConfig.redirectUri,
-    state: state
-  });
+  // Force session save before redirect
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.status(500).json({ error: 'Failed to initialize session' });
+    }
 
-  res.redirect(authUrl);
+    console.log('Session saved with state:', state);
+
+    const authUrl = `${spotifyConfig.authBaseUrl}/authorize?` + querystring.stringify({
+      response_type: 'code',
+      client_id: spotifyConfig.clientId,
+      scope: spotifyConfig.scopes.join(' '),
+      redirect_uri: spotifyConfig.redirectUri,
+      state: state
+    });
+
+    res.redirect(authUrl);
+  });
 });
 
 /**
@@ -35,8 +47,23 @@ router.get('/callback', async (req, res) => {
   const state = req.query.state || null;
   const storedState = req.session.state || null;
 
+  // Debug logging
+  console.log('=== OAuth Callback Debug ===');
+  console.log('Received state:', state);
+  console.log('Stored state:', storedState);
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+
   if (state === null || state !== storedState) {
-    return res.status(400).json({ error: 'State mismatch' });
+    console.error('State mismatch! Received:', state, 'Expected:', storedState);
+    return res.status(400).json({
+      error: 'State mismatch',
+      debug: process.env.NODE_ENV === 'development' ? {
+        received: state,
+        expected: storedState,
+        sessionExists: !!req.session
+      } : undefined
+    });
   }
 
   req.session.state = null;

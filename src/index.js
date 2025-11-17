@@ -18,6 +18,11 @@ validateEnv();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Trust proxy - CRITICAL for Render deployment
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
@@ -51,9 +56,12 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none'
+    sameSite: 'lax', // Always use 'lax' for OAuth flows
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost'
   },
-  name: 'vibelink.sid'
+  name: 'vibelink.sid',
+  proxy: process.env.NODE_ENV === 'production' // Trust proxy in production (Render uses proxy)
 }));
 
 // Swagger documentation
