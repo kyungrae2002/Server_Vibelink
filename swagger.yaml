@@ -1,0 +1,314 @@
+openapi: 3.0.0
+info:
+  title: VibeLink API
+  description: REST API for VibeLink - Spotify-based music preference sharing platform
+  version: 1.0.0
+  contact:
+    name: VibeLink Team
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: Spotify OAuth2 authentication endpoints
+  - name: User
+    description: User profile and music preference endpoints
+  - name: Preference
+    description: Preference sharing and comparison endpoints
+  - name: Playlist
+    description: Playlist creation and management endpoints
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+
+  /api/auth/login:
+    get:
+      tags:
+        - Authentication
+      summary: Initiate Spotify OAuth flow
+      description: Redirects user to Spotify authorization page
+      responses:
+        '302':
+          description: Redirect to Spotify authorization
+
+  /api/auth/callback:
+    get:
+      tags:
+        - Authentication
+      summary: OAuth callback handler
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+        '400':
+          description: State mismatch or invalid code
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      responses:
+        '200':
+          description: Token refreshed successfully
+        '401':
+          description: No refresh token available
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      responses:
+        '200':
+          description: Logged out successfully
+
+  /api/user/profile:
+    get:
+      tags:
+        - User
+      summary: Get current user's profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved
+        '401':
+          description: Unauthorized
+
+  /api/user/top-artists:
+    get:
+      tags:
+        - User
+      summary: Get user's top artists
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: time_range
+          in: query
+          schema:
+            type: string
+            enum: [short_term, medium_term, long_term]
+            default: medium_term
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Top artists retrieved
+
+  /api/user/top-tracks:
+    get:
+      tags:
+        - User
+      summary: Get user's top tracks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: time_range
+          in: query
+          schema:
+            type: string
+            enum: [short_term, medium_term, long_term]
+            default: medium_term
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Top tracks retrieved
+
+  /api/preference/create-link:
+    post:
+      tags:
+        - Preference
+      summary: Create a preference sharing link
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Preference link created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  linkId:
+                    type: string
+                  shareUrl:
+                    type: string
+                  message:
+                    type: string
+
+  /api/preference/link/{linkId}:
+    get:
+      tags:
+        - Preference
+      summary: Get preference link details
+      parameters:
+        - name: linkId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Link details retrieved
+        '404':
+          description: Link not found
+
+  /api/preference/accept/{linkId}:
+    post:
+      tags:
+        - Preference
+      summary: Accept and compare preferences
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: linkId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Preferences compared successfully
+        '404':
+          description: Link not found
+
+  /api/preference/my-links:
+    get:
+      tags:
+        - Preference
+      summary: Get all preference links created by user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User links retrieved
+
+  /api/playlist/create-blend:
+    post:
+      tags:
+        - Playlist
+      summary: Create a blend playlist
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - commonArtistIds
+              properties:
+                commonArtistIds:
+                  type: array
+                  items:
+                    type: string
+                playlistName:
+                  type: string
+                playlistDescription:
+                  type: string
+      responses:
+        '200':
+          description: Playlist created successfully
+        '400':
+          description: Invalid request
+
+  /api/playlist/recommendations:
+    get:
+      tags:
+        - Playlist
+      summary: Get track recommendations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: seed_artists
+          in: query
+          required: true
+          description: Comma-separated artist IDs
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Recommendations retrieved
+
+  /api/playlist/my-playlists:
+    get:
+      tags:
+        - Playlist
+      summary: Get user's playlists
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Playlists retrieved
+
+  /api/playlist/{playlistId}:
+    get:
+      tags:
+        - Playlist
+      summary: Get specific playlist details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: playlistId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Playlist details retrieved
+        '404':
+          description: Playlist not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

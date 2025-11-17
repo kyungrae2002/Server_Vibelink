@@ -1,0 +1,25 @@
+services:
+  # Web Service
+  - type: web
+    name: vibelink-server
+    env: node
+    region: oregon # 또는 singapore (한국과 가까움)
+    plan: free # free, starter, standard 중 선택
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000 # Render 기본 포트
+      - key: SPOTIFY_CLIENT_ID
+        sync: false # Render 대시보드에서 수동 설정
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false # Render 대시보드에서 수동 설정
+      - key: SPOTIFY_REDIRECT_URI
+        sync: false # 예: https://vibelink-server.onrender.com/api/auth/callback
+      - key: SESSION_SECRET
+        generateValue: true # Render가 자동으로 랜덤 값 생성
+      - key: ALLOWED_ORIGINS
+        sync: false # 프론트엔드 URL 설정
