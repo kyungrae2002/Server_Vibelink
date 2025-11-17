@@ -11,7 +11,9 @@
       "Bash(timeout /t 2)",
       "Bash(if exist .env type .env)",
       "Bash(curl:*)",
-      "Bash(nul)"
+      "Bash(nul)",
+      "Bash(timeout:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

@@ -30,12 +30,25 @@ app.use(cors({
     if (!origin) return callback(null, true);
 
     const allowedOrigins = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',')
-      : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://127.0.0.1:3000'];
+      ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+      : [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'http://localhost:5173',
+          'http://localhost:8080',
+          'http://127.0.0.1:3000',
+          'http://127.0.0.1:8080'
+        ];
 
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    // In development, allow all origins
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.error('CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -53,12 +66,12 @@ app.use(session({
   resave: false,
   saveUninitialized: true, // Changed to true for better initial connection
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax', // Always use 'lax' for OAuth flows
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost'
+    path: '/'
+    // Don't set domain in development - let it default to current host
   },
   name: 'vibelink.sid',
   proxy: process.env.NODE_ENV === 'production' // Trust proxy in production (Render uses proxy)
