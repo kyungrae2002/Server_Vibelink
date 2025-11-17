@@ -24,6 +24,8 @@ router.get('/login', (req, res) => {
     }
 
     console.log('Session saved with state:', state);
+    console.log('Session ID:', req.sessionID);
+    console.log('Session cookie settings:', req.session.cookie);
 
     const authUrl = `${spotifyConfig.authBaseUrl}/authorize?` + querystring.stringify({
       response_type: 'code',

@@ -66,7 +66,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true, // Changed to true for better initial connection
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    secure: false, // Set to false for local development (HTTP)
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax', // Always use 'lax' for OAuth flows
@@ -122,9 +122,13 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`VibeLink Server is running on port ${PORT}`);
-  console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
+// Bind to 127.0.0.1 in development, 0.0.0.0 in production
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
+
+app.listen(PORT, HOST, () => {
+  const address = HOST === '0.0.0.0' ? 'all interfaces' : `http://${HOST}:${PORT}`;
+  console.log(`VibeLink Server is running on ${address} (port ${PORT})`);
+  console.log(`API Documentation available at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}/api-docs`);
 });
 
 module.exports = app;
