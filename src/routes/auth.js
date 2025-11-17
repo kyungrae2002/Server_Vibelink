@@ -100,15 +100,9 @@ router.get('/callback', async (req, res) => {
 
     req.session.userId = userResponse.data.id;
 
-    res.json({
-      message: 'Authentication successful',
-      user: {
-        id: userResponse.data.id,
-        display_name: userResponse.data.display_name,
-        email: userResponse.data.email,
-        images: userResponse.data.images
-      }
-    });
+    // Redirect to frontend after successful authentication
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://127.0.0.1:5173';
+    res.redirect(FRONTEND_URL);
   } catch (error) {
     console.error('Error during authentication:', error.response?.data || error.message);
     res.status(500).json({

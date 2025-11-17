@@ -64,12 +64,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true, // Changed to true for better initial connection
+  saveUninitialized: false, // Don't save empty sessions
   cookie: {
     secure: false, // Set to false for local development (HTTP)
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax', // Always use 'lax' for OAuth flows
+    sameSite: 'lax', // 'lax' allows cookies on same-site navigation
     path: '/'
     // Don't set domain in development - let it default to current host
   },
